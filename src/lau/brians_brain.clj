@@ -8,125 +8,12 @@
         '(java.awt Color Graphics)
         '(java.awt.image BufferedImage))
 
-(def dim-board   [ 90   90])
-(def dim-screen  [600  600])
-(def dim-scale   (vec (map / dim-screen dim-board)))
+(load "brians_brain/board")
+(load "brians_brain/automaton")
+(load "brians_brain/swing_gui")
+(load "brians_brain/console_gui")
 
-(defn cell-indexed [board]
-  (for [[row-idx row] (indexed board)]
-    (for [[col-idx val] (indexed row)]
-         [val row-idx col-idx])))
 
-(defn unindexed [board]
-  (for [row board]
-    (for [[col] row] col)))
-
-(def state->char {:on \O, :dying \|, :off \.})
-(def char->state
-     (into {} (map (fn [[k v]] [v k]) state->char)))
-
-(defn board->chars
-  [aboard]
-  (map (partial map state->char) aboard))
-
-(defn board->str
-  "Convert from board form to string form:
-
-   O.O         [[ :on     :off  :on    ]
-   |.|    <==   [ :dying  :off  :dying ]
-   O.O          [ :on     :off  :on    ]
-"
-  [aboard]
-  (str-join "\n" (map (partial str-join "") (board->chars aboard))))
-
-(defn str->board
-  "Convert from string form to board form:
-
-   O.O         [[ :on     :off  :on    ]
-   |.|    ==>   [ :dying  :off  :dying ]
-   O.O          [ :on     :off  :on    ]
-"
-  [s]
-  (map (partial map char->state)
-       (map #(re-gsub #"\s+" "" %) (re-split #"\n" s))))
-
-(defn render-cell [#^Graphics g cell]
-  (let [[state x y] cell
-        x  (inc (* x (dim-scale 0)))
-        y  (inc (* y (dim-scale 1)))]
-    (doto g
-      (.setColor (if (= state :dying) Color/GRAY Color/WHITE))
-      (.fillRect x y (dec (dim-scale 0)) (dec (dim-scale 1))))))
-
-(defn render [g img bg stage]
-  (.setColor bg Color/BLACK)
-  (.fillRect bg 0 0 (dim-screen 0) (dim-screen 1))
-  (doseq [row (cell-indexed stage)
-          cell row]
-    (when (not= :off (cell 0))
-      (render-cell bg cell)))
-  (.drawImage g img 0 0 nil))
-
-(defn new-board
-  ([] (apply new-board dim-board))
-  ([dim-x dim-y]
-     (for [x (range dim-x)]
-       (for [y (range dim-y)]
-         (if (< 50 (rand-int 100)) :on :off)))))
-
-(defn active-neighbors [above [left _ right] below]
-  (count
-   (filter #(= :on %)
-           (concat above [left right] below))))
-
-(defn torus-window [coll]
-  (partition 3 1 (concat [(last coll)] coll [(first coll)])))
-
-(defn rules [above [_ cell _ :as row] below]
-  (cond
-   (= :on    cell)                              :dying
-   (= :dying cell)                              :off  
-   (= 2 (active-neighbors above row below))     :on   
-   :else                                        :off  ))
-
-(defn step [board]
-  (doall
-   (pmap (fn [window]
-          (apply #(doall (apply map rules %&))
-                 (doall (map torus-window window))))
-        (torus-window board))))
-
-(def sim-status (ref {:latest ""}))
-(defn register-status-mbean []
-  (jmx/register-mbean (Bean. sim-status) "lau.brians-brain:name=Sim"))
-
-(defn update-stage [stage]
-  (swap! stage step)
-  (dosync (alter sim-status assoc :latest (board->str @stage))))
-
-(defn activity-loop [surface stage]
-  (while
-   true
-   (update-stage stage)
-   (.repaint surface)))
-
-(defn launch [] 
-  (let [stage (atom (new-board))
-        frame (JFrame.)
-        img   (BufferedImage. (dim-screen 0) (dim-screen 1) (BufferedImage/TYPE_INT_ARGB))
-        bg    (.getGraphics img)
-        panel (doto (proxy [JPanel] [] (paint [g] (render g img bg @stage))))]
-    (doto frame (.add panel) .pack (.setSize (dim-screen 0) (dim-screen 1)) .show
-          (.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE))
-    (future (activity-loop panel stage))
-    stage))
-
-(defn launch-console []
-  (let [stage (atom (new-board))]
-    (while true
-           (swap! stage step)
-           (Thread/sleep 100)
-           (println (board->str @stage)))))
 
 
 
