@@ -12,9 +12,6 @@
 (def dim-screen  [600  600])
 (def dim-scale   (vec (map / dim-screen dim-board)))
 
-; doseq instead?
-(defn fmap [f coll] (doall (map f coll)))
-
 (defn cell-indexed [board]
   (for [[row-idx row] (indexed board)]
     (for [[col-idx val] (indexed row)]
@@ -33,10 +30,23 @@
   (map (partial map state->char) aboard))
 
 (defn board->str
+  "Convert from board form to string form:
+
+   O.O         [[ :on     :off  :on    ]
+   |.|    <==   [ :dying  :off  :dying ]
+   O.O          [ :on     :off  :on    ]
+"
   [aboard]
   (str-join "\n" (map (partial str-join "") (board->chars aboard))))
 
-(defn str->board [s]
+(defn str->board
+  "Convert from string form to board form:
+
+   O.O         [[ :on     :off  :on    ]
+   |.|    ==>   [ :dying  :off  :dying ]
+   O.O          [ :on     :off  :on    ]
+"
+  [s]
   (map (partial map char->state)
        (map #(re-gsub #"\s+" "" %) (re-split #"\n" s))))
 
@@ -51,9 +61,10 @@
 (defn render [g img bg stage]
   (.setColor bg Color/BLACK)
   (.fillRect bg 0 0 (dim-screen 0) (dim-screen 1))
-  (fmap (fn [col]
-          (fmap #(when (not= :off (% 0))
-                   (render-cell bg %)) col)) (cell-indexed stage))
+  (doseq [row (cell-indexed stage)
+          cell row]
+    (when (not= :off (cell 0))
+      (render-cell bg cell)))
   (.drawImage g img 0 0 nil))
 
 (defn new-board
@@ -86,7 +97,8 @@
         (torus-window board))))
 
 (def sim-status (ref {:latest ""}))
-(jmx/register-mbean (Bean. sim-status) "lau.brians-brain:name=Sim")
+(defn register-status-mbean []
+  (jmx/register-mbean (Bean. sim-status) "lau.brians-brain:name=Sim"))
 
 (defn update-stage [stage]
   (swap! stage step)
