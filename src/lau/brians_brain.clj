@@ -1,6 +1,8 @@
 ; adapted from http://blog.bestinclass.dk/index.php/2009/10/brians-functional-brain/
 (ns lau.brians-brain
-  (:use clojure.contrib.str-utils clojure.contrib.seq-utils))
+  (:use clojure.contrib.str-utils clojure.contrib.seq-utils)
+  (:require [clojure.contrib.jmx :as jmx])
+  (:import [clojure.contrib.jmx Bean]))
 
 (import '(javax.swing JFrame JPanel)
         '(java.awt Color Graphics)
@@ -21,6 +23,22 @@
 (defn unindexed [board]
   (for [row board]
     (for [[col] row] col)))
+
+(def state->char {:on \O, :dying \|, :off \.})
+(def char->state
+     (into {} (map (fn [[k v]] [v k]) state->char)))
+
+(defn board->chars
+  [aboard]
+  (map (partial map state->char) aboard))
+
+(defn board->str
+  [aboard]
+  (str-join "\n" (map (partial str-join "") (board->chars aboard))))
+
+(defn str->board [s]
+  (map (partial map char->state)
+       (map #(re-gsub #"\s+" "" %) (re-split #"\n" s))))
 
 (defn render-cell [#^Graphics g cell]
   (let [[state x y] cell
@@ -67,11 +85,18 @@
                  (doall (map torus-window window))))
         (torus-window board))))
 
+(def sim-status (ref {:latest ""}))
+(jmx/register-mbean (Bean. sim-status) "lau.brians-brain:name=Sim")
+
+(defn update-stage [stage]
+  (swap! stage step)
+  (dosync (alter sim-status assoc :latest (board->str @stage))))
+
 (defn activity-loop [surface stage]
-  (time
-   (dotimes [i 200]
-     (swap! stage step)
-     (.repaint surface))))
+  (while
+   true
+   (update-stage stage)
+   (.repaint surface)))
 
 (defn launch [] 
   (let [stage (atom (new-board))
@@ -84,26 +109,13 @@
     (future (activity-loop panel stage))
     stage))
 
-(def state->char {:on \O, :dying \|, :off \.})
-(def char->state
-     (into {} (map (fn [[k v]] [v k]) state->char)))
-
-(defn board->chars
-  [aboard]
-  (map (partial map state->char) aboard))
-
-(defn board->str
-  [aboard]
-  (str-join "\n" (map (partial str-join "") (board->chars aboard))))
-
-(defn str->board [s]
-  (map (partial map char->state)
-       (map #(re-gsub #"\s+" "" %) (re-split #"\n" s))))
-
 (defn launch-console []
   (let [stage (atom (new-board))]
     (while true
            (swap! stage step)
            (Thread/sleep 100)
            (println (board->str @stage)))))
+
+
+
 
