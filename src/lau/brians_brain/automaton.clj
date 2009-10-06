@@ -33,15 +33,15 @@
                  (doall (map torus-window window))))
         (torus-window board))))
 
-(def status (ref {:latest ""}))
+(def status (atom {:iterations 0}))
 (defn register-status-mbean
   "Gratuitous demo of JMX. Throw the most recent automaton status, as a string,
    into a JMX bean so other processes can query it."
   []
-  (jmx/register-mbean (Bean. status) "lau.brians-brain:name=Sim"))
+  (jmx/register-mbean (Bean. status) "lau.brians-brain:name=Automaton"))
 
 (defn update-stage
-  "Update a reference."
+  "Update the automaton (and associated metrics)."
   [stage]
   (swap! stage step)
-  (dosync (alter status assoc :latest (board->str @stage))))
+  (swap! status update-in [:iterations] inc))
