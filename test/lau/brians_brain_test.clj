@@ -31,8 +31,8 @@
 
        ))
 
-(deftest test-cell-indexed
-  (are [result input] (= result (cell-indexed input))
+(deftest test-with-coords
+  (are [result input] (= result (with-coords input))
        [[[:a 0 0] [:b 0 1]] [[:c 1 0] [:d 1 1]]]
        [[:a :b] [:c :d]] ))
 
@@ -76,8 +76,8 @@
        [[1 2 3] [1 2 3]]
        2 3))
 
-(deftest test-cell-unindexed
-  (are [result input] (= result (unindexed input))
+(deftest test-without-coords
+  (are [result input] (= result (without-coords input))
        [[:a :b] [:c :d]]
        [[[:a 0 0] [:b 0 1]] [[:c 1 0] [:d 1 1]]]))
 
@@ -91,6 +91,20 @@
           ...
           O.O"
 
-       2 "III
+       2 "|||
           OOO
-          III"))
+          |||"))
+
+(deftest test-rules
+  (are [result boardstr] (= result (apply rules (str->board boardstr)))
+       :dying  "...
+                .O.
+                ..."
+
+       :off    "O.O
+                ...
+                O.O"
+
+       :on     "|||
+                O.O
+                |||"))

@@ -11,7 +11,7 @@
 (defn render [g img bg stage]
   (.setColor bg Color/BLACK)
   (.fillRect bg 0 0 (dim-screen 0) (dim-screen 1))
-  (doseq [row (cell-indexed stage)
+  (doseq [row (with-coords stage)
           cell row]
     (when (not= :off (cell 0))
       (render-cell bg cell)))

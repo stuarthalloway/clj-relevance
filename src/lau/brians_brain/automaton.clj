@@ -15,7 +15,7 @@
   (partition 3 1 (concat [(last coll)] coll [(first coll)])))
 
 (defn rules
-  "Determine the cells next state based on its current
+  "Determine the cell's next state based on its current
    state and number of active neighbors."
   [above [_ cell _ :as row] below]
   (cond

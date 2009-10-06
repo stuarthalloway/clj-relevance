@@ -1,8 +1,5 @@
 (in-ns 'lau.brians-brain)
 
 (defn launch-console []
-  (let [stage (atom (new-board))]
-    (while true
-           (swap! stage step)
-           (Thread/sleep 100)
-           (println (board->str @stage)))))
+  (doseq [board (iterate step (new-board))]
+    (println (board->str board))))

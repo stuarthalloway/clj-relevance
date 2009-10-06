@@ -4,22 +4,22 @@
 (def dim-screen  [600  600])
 (def dim-scale   (vec (map / dim-screen dim-board)))
 
-(defn cell-indexed [board]
+(defn with-coords [board]
   (for [[row-idx row] (indexed board)]
     (for [[col-idx val] (indexed row)]
          [val row-idx col-idx])))
 
-(defn unindexed [board]
+(defn without-coords [board]
   (for [row board]
-    (for [[col] row] col)))
+    (for [[state] row] state)))
 
 (def state->char {:on \O, :dying \|, :off \.})
 (def char->state
      (into {} (map (fn [[k v]] [v k]) state->char)))
 
 (defn board->chars
-  [aboard]
-  (map (partial map state->char) aboard))
+  [board]
+  (map (partial map state->char) board))
 
 (defn board->str
   "Convert from board form to string form:
@@ -28,8 +28,8 @@
    |.|    <==   [ :dying  :off  :dying ]
    O.O          [ :on     :off  :on    ]
 "
-  [aboard]
-  (str-join "\n" (map (partial str-join "") (board->chars aboard))))
+  [board]
+  (str-join "\n" (map (partial str-join "") (board->chars board))))
 
 (defn str->board
   "Convert from string form to board form:
