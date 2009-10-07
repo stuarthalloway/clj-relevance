@@ -26,7 +26,7 @@
 
    O.O         [[ :on     :off  :on    ]
    |.|    <==   [ :dying  :off  :dying ]
-   O.O          [ :on     :off  :on    ]
+   O.O          [ :on     :off  :on    ]]
 "
   [board]
   (str-join "\n" (map (partial str-join "") (board->chars board))))
@@ -36,7 +36,7 @@
 
    O.O         [[ :on     :off  :on    ]
    |.|    ==>   [ :dying  :off  :dying ]
-   O.O          [ :on     :off  :on    ]
+   O.O          [ :on     :off  :on    ]]
 "
   [s]
   (map (partial map char->state)
