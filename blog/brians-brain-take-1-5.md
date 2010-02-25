@@ -168,10 +168,10 @@ A third option is `immigrate`. With `immigrate` you can organize your code into 
 Instead, I chose to use one namespace for the convenience of callers, and mutilple files to provide sub-namespace organization for readers of code. I mimiced the structure [Tom Faulhaber](http://github.com/tomfaulhaber) used in clojure-contrib's pprint library: a top level file that calls `load` on several files in a subdirectory of the same name (minus the .clj extension):
 
 <pre><code>lau/brians_brain.clj  
-lau/brian_brain/automaton.clj
-lau/brian_brain/board.clj
-lau/brian_brain/console_gui.clj
-lau/brian_brain/swing_gui.clj
+lau/brians_brain/automaton.clj
+lau/brians_brain/board.clj
+lau/brians_brain/console_gui.clj
+lau/brians_brain/swing_gui.clj
 </code></pre>
 
 I also used this layout for clojure-contrib's JMX library.

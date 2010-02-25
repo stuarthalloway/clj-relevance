@@ -14,6 +14,15 @@
   [coll]
   (partition 3 1 (concat [(last coll)] coll [(first coll)])))
 
+
+; conway
+#_(defn rules
+  [above [_ cell _ :as row] below]
+  (let [active (active-neighbors above row below)]
+    (if (= :on cell)
+      (if (<= 2 active 3) :on :off)
+      (if (= active 3) :on :off))))
+
 (defn rules
   "Determine the cell's next state based on its current
    state and number of active neighbors."

@@ -28,9 +28,9 @@
         frame (JFrame.)
         img   (BufferedImage. (dim-screen 0) (dim-screen 1) (BufferedImage/TYPE_INT_ARGB))
         bg    (.getGraphics img)
-        panel (doto (proxy [JPanel] [] (paint [g] (render g img bg @stage))))]
+        panel (proxy [JPanel] [] (paint [g] (render g img bg @stage)))]
     (doto frame (.add panel) .pack (.setSize (dim-screen 0) (dim-screen 1)) .show
-          (.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE))
+          (.setDefaultCloseOperation JFrame/DISPOSE_ON_CLOSE))
     (future (activity-loop panel stage))
     stage))
 

@@ -1,8 +1,8 @@
 (ns lau.brians-brain-test
-  (use clojure.test lau.brians-brain clojure.contrib.str-utils))
+  (use circumspec lau.brians-brain clojure.contrib.str-utils))
 
-(deftest test-board->str
-  (are [board str] (= (re-gsub #" " "" str) (board->str board))
+(testing board->str
+  (for-these [board str] (= (re-gsub #" " "" str) (board->str board))
        [[:on]]
        "O"
 
@@ -13,8 +13,8 @@
 
        ))
 
-(deftest test-str->board
-  (are [board str] (= board (str->board str))
+(testing str->board
+  (for-these [board str] (= board (str->board str))
        [[:on]]
        "O"
        
@@ -31,8 +31,8 @@
 
        ))
 
-(deftest test-with-coords
-  (are [result input] (= result (with-coords input))
+(testing with-coords
+  (for-these [result input] (= result (with-coords input))
        [[[:a 0 0] [:b 0 1]] [[:c 1 0] [:d 1 1]]]
        [[:a :b] [:c :d]] ))
 
@@ -52,8 +52,8 @@
 (defmethod same-structure? [:other :other] [_ _] true)
 (defmethod same-structure? :default [_ _] false)
 
-(deftest test-same-structure
-  (are [result s1 s2] (= result (same-structure? s1 s2))
+(testing same-structure?
+  (for-these [result s1 s2] (= result (same-structure? s1 s2))
        true 0 1
        true [] []
        true {} {}
@@ -65,8 +65,8 @@
        false [] [1]
        false {:a 1} {:b 1}))
 
-(deftest test-new-board
-  (are [structure x y] (same-structure? structure (new-board x y))
+(testing new-board
+  (for-these [structure x y] (same-structure? structure (new-board x y))
        []
        0 0
 
@@ -76,13 +76,13 @@
        [[1 2 3] [1 2 3]]
        2 3))
 
-(deftest test-without-coords
-  (are [result input] (= result (without-coords input))
+(testing without-coords
+  (for-these [result input] (= result (without-coords input))
        [[:a :b] [:c :d]]
        [[[:a 0 0] [:b 0 1]] [[:c 1 0] [:d 1 1]]]))
 
-(deftest test-active-neighbors
-  (are [result boardstr] (= result (apply active-neighbors (str->board boardstr)))
+(testing active-neighbors
+  (for-these [result boardstr] (= result (apply active-neighbors (str->board boardstr)))
        0 "...
           ...
           ..."
@@ -95,8 +95,8 @@
           OOO
           |||"))
 
-(deftest test-rules
-  (are [result boardstr] (= result (apply rules (str->board boardstr)))
+(testing rules
+  (for-these [result boardstr] (= result (apply rules (str->board boardstr)))
        :dying  "...
                 .O.
                 ..."
